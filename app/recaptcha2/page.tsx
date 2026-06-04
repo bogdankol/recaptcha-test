@@ -1,9 +1,9 @@
 "use client";
 
-import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { useRef, useState } from "react";
 
-// reCAPTCHA v2 ("I'm not a robot" checkbox).
+// reCAPTCHA v2 ("I'm not a robot" checkbox) via react-google-recaptcha.
 // Defaults to Google's official test site key, which always passes.
 // Override with NEXT_PUBLIC_RECAPTCHA_V2_SITE_KEY for a real key.
 const SITE_KEY =
@@ -12,46 +12,17 @@ const SITE_KEY =
 
 export default function Recaptcha2Page() {
   const [open, setOpen] = useState(false);
-  const [scriptReady, setScriptReady] = useState(false);
   const [token, setToken] = useState<string | null>(null);
-
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const widgetIdRef = useRef<number | null>(null);
-
-  // Render the widget once the overlay is open and the API has loaded.
-  useEffect(() => {
-    if (!open || !scriptReady) return;
-    const container = containerRef.current;
-    if (!container || !window.grecaptcha) return;
-    if (widgetIdRef.current !== null) return;
-
-    container.innerHTML = "";
-    widgetIdRef.current = window.grecaptcha.render(container, {
-      sitekey: SITE_KEY,
-      theme: "light",
-      callback: (t) => setToken(t),
-      "expired-callback": () => setToken(null),
-    });
-  }, [open, scriptReady]);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   function close() {
     setOpen(false);
     setToken(null);
-    // Reset so the widget can be re-rendered cleanly next time.
-    if (widgetIdRef.current !== null && window.grecaptcha) {
-      window.grecaptcha.reset(widgetIdRef.current);
-    }
-    widgetIdRef.current = null;
+    recaptchaRef.current?.reset();
   }
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
-      <Script
-        src="https://www.google.com/recaptcha/api.js?render=explicit"
-        strategy="afterInteractive"
-        onLoad={() => setScriptReady(true)}
-      />
-
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -73,11 +44,13 @@ export default function Recaptcha2Page() {
               reCAPTCHA v2
             </h2>
 
-            <div ref={containerRef} />
-
-            {!scriptReady && (
-              <p className="text-sm text-zinc-500">Loading reCAPTCHA…</p>
-            )}
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={SITE_KEY}
+              theme="light"
+              onChange={(t) => setToken(t)}
+              onExpired={() => setToken(null)}
+            />
 
             {token && (
               <p className="max-w-xs break-all text-center text-sm text-green-600 dark:text-green-400">

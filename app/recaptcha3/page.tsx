@@ -1,50 +1,40 @@
 "use client";
 
-import Script from "next/script";
+import {
+  GoogleReCaptchaProvider,
+  useGoogleReCaptcha,
+} from "react-google-recaptcha-v3";
 import { useState } from "react";
 
-// reCAPTCHA v3 (invisible, score-based — no checkbox).
-// v3 has no public "always pass" test key, so a real key is required.
-// Set NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY in .env.local.
+// reCAPTCHA v3 (invisible, score-based — no checkbox) via
+// react-google-recaptcha-v3. v3 has no public "always pass" test key,
+// so a real key is required. Set NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY.
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY ?? "";
 
 type Status = "idle" | "loading" | "done" | "error";
 
-export default function Recaptcha3Page() {
+function Recaptcha3Inner() {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [open, setOpen] = useState(false);
-  const [scriptReady, setScriptReady] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [token, setToken] = useState<string | null>(null);
 
-  function openOverlay() {
+  async function openOverlay() {
     setOpen(true);
-    setStatus("idle");
     setToken(null);
+    setStatus("loading");
 
-    if (!SITE_KEY) {
+    if (!executeRecaptcha) {
       setStatus("error");
       return;
     }
-    if (!scriptReady || !window.grecaptcha) {
-      setStatus("loading");
-      return;
+    try {
+      const t = await executeRecaptcha("open_recaptcha");
+      setToken(t);
+      setStatus("done");
+    } catch {
+      setStatus("error");
     }
-    execute();
-  }
-
-  function execute() {
-    const grecaptcha = window.grecaptcha;
-    if (!grecaptcha || !SITE_KEY) return;
-    setStatus("loading");
-    grecaptcha.ready(() => {
-      grecaptcha
-        .execute(SITE_KEY, { action: "open_recaptcha" })
-        .then((t) => {
-          setToken(t);
-          setStatus("done");
-        })
-        .catch(() => setStatus("error"));
-    });
   }
 
   function close() {
@@ -55,18 +45,6 @@ export default function Recaptcha3Page() {
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
-      {SITE_KEY && (
-        <Script
-          src={`https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`}
-          strategy="afterInteractive"
-          onLoad={() => {
-            setScriptReady(true);
-            // If the overlay opened before the script finished loading, run now.
-            if (open && status === "loading") execute();
-          }}
-        />
-      )}
-
       <button
         type="button"
         onClick={openOverlay}
@@ -105,9 +83,7 @@ export default function Recaptcha3Page() {
 
             {status === "error" && (
               <p className="max-w-xs text-sm text-red-600 dark:text-red-400">
-                {SITE_KEY
-                  ? "Verification failed. Check the site key and domain."
-                  : "Set NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY in .env.local to run v3."}
+                Verification failed. Check the site key and domain.
               </p>
             )}
 
@@ -122,5 +98,24 @@ export default function Recaptcha3Page() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function Recaptcha3Page() {
+  if (!SITE_KEY) {
+    return (
+      <main className="flex flex-1 items-center justify-center bg-zinc-50 p-8 text-center dark:bg-black">
+        <p className="max-w-sm text-sm text-red-600 dark:text-red-400">
+          Set NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY in .env.local to run reCAPTCHA
+          v3.
+        </p>
+      </main>
+    );
+  }
+
+  return (
+    <GoogleReCaptchaProvider reCaptchaKey={SITE_KEY}>
+      <Recaptcha3Inner />
+    </GoogleReCaptchaProvider>
   );
 }
