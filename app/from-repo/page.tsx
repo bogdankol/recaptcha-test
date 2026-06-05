@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
-import { recaptchaKeyForV2 } from "./config";
+import { recaptchaKeyForV2Hard } from "./config";
 import { FromRepoProvider } from "./Providers";
 import { useRecaptchaScore } from "./useRecaptchaScore";
 import { useRecaptchaV2Handler } from "./useRecaptchaV2Handler";
@@ -95,7 +95,7 @@ function LoginForm() {
             </p>
             <ReCAPTCHA
               ref={recaptchaRef}
-              sitekey={recaptchaKeyForV2}
+              sitekey={recaptchaKeyForV2Hard}
               onChange={handleV2Change}
             />
           </div>
