@@ -1,10 +1,6 @@
-// Client-side stand-in for the app's real API client.
-//
-// IMPORTANT: this is fully client-side — no server, no network. A real
-// reCAPTCHA v3 score CANNOT be obtained in the browser: it requires the secret
-// key server-side and Google's siteverify endpoint blocks cross-origin browser
-// requests. So `post` SIMULATES the backend response. Swap this for the real
-// api client (which hits your backend) in production.
+// Minimal API client: POSTs a JSON payload to a same-origin route handler,
+// mirroring the real app's apiClient. requestURL is relative
+// (e.g. "v3/auth/recaptcha/verify") so the call is same-origin → no CORS.
 type PostArgs = {
   requestURL: string;
   payload: Record<string, unknown>;
@@ -12,17 +8,16 @@ type PostArgs = {
 
 export const apiClient = {
   async post({ requestURL, payload }: PostArgs): Promise<unknown> {
-    // Simulate network latency.
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    const res = await fetch(`/${requestURL}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-    if (requestURL === "v3/auth/recaptcha/verify") {
-      if (!payload.token) {
-        throw new Error("Missing reCAPTCHA token");
-      }
-      // Random score in [0, 1] so both the OK and suspicious paths are reachable.
-      return { score: Math.round(Math.random() * 10) / 10 };
+    if (!res.ok) {
+      throw new Error(`Request to ${requestURL} failed: ${res.status}`);
     }
 
-    throw new Error(`Unhandled request: ${requestURL}`);
+    return res.json();
   },
 };

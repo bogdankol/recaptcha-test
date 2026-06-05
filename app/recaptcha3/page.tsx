@@ -5,7 +5,7 @@ import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { useRecaptchaScore } from "@/app/hooks/useRecaptchaScore";
 import { recaptchaKey } from "@/etc/config";
 import { BackToHome } from "@/app/components/BackToHome";
-import { createAssessment, verifyWithSiteverify } from "@/app/lib/recaptcha";
+import { verifyViaBackend } from "@/app/lib/recaptcha";
 
 const ACTION = "open_recaptcha";
 
@@ -41,10 +41,7 @@ function Recaptcha3Inner() {
     setManual(null);
     try {
       const token = await executeRecaptcha(ACTION);
-      const score =
-        variant === "siteverify"
-          ? await verifyWithSiteverify(token)
-          : await createAssessment({ token, recaptchaAction: ACTION });
+      const score = await verifyViaBackend(token, variant, ACTION);
       setManual({
         label:
           variant === "siteverify"
@@ -96,7 +93,7 @@ function Recaptcha3Inner() {
 
         <div className="flex w-full flex-col gap-3 border-t border-black/12 pt-6 dark:border-white/16">
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Real verification (client-side — likely CORS-blocked):
+            Real verification (server-side via /v3/auth/recaptcha/verify):
           </p>
           <button
             type="button"
@@ -121,7 +118,7 @@ function Recaptcha3Inner() {
             <p className="text-sm font-medium text-black dark:text-zinc-50">
               {manual.label}:{" "}
               {manual.score === null
-                ? "failed (check console — likely CORS)"
+                ? "failed (check server logs)"
                 : manual.score.toFixed(1)}
             </p>
           )}
