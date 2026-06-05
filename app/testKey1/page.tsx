@@ -17,6 +17,7 @@ export default function TestKey1Page() {
         method="POST"
         className="flex flex-col items-center gap-4 rounded-2xl border-2 border-red-500 p-8"
       >
+        It will return a fixed score of 0.4
         <div
           className="g-recaptcha rounded border-2 border-red-500 p-2"
           data-sitekey="6LdnAg4tAAAAAGhhdQFi8AajWX2Sb2IRp1guktLb"

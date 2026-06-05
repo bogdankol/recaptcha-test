@@ -79,7 +79,7 @@ export default function TestKeyAlways09Page() {
 
       <div className="flex w-full max-w-sm flex-col items-center gap-6 rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-zinc-900">
         <h2 className="text-xl font-semibold text-black dark:text-zinc-50">
-          reCAPTCHA Enterprise
+          reCAPTCHA Enterprise, It will return a fixed score of 0.9
         </h2>
 
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
