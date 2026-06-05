@@ -60,6 +60,12 @@ export default function Home() {
           >
             Enterprise score
           </Link>
+          <Link
+            className="flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            href="/login"
+          >
+            Login (v3 + v2 fallback)
+          </Link>
         </div>
         <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
           <a

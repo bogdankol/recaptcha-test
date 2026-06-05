@@ -1,12 +1,23 @@
 "use client";
 
-import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { useRecaptchaScore } from "@/app/hooks/useRecaptchaScore";
+import { recaptchaKey } from "@/etc/config";
 
-// reCAPTCHA v3 (invisible, score-based — no checkbox) via
-// react-google-recaptcha-v3. v3 has no public "always pass" test key,
-// so a real key is required. Set NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY.
-const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY ?? "";
+// reCAPTCHA v3 (invisible, score-based). The provider is now global
+// (app/providers.tsx), so this page just consumes the score hook.
+export default function Recaptcha3Page() {
+  if (!recaptchaKey) {
+    return (
+      <main className="flex flex-1 items-center justify-center bg-zinc-50 p-8 text-center dark:bg-black">
+        <p className="max-w-sm text-sm text-red-600 dark:text-red-400">
+          Set recaptchaKey (v3 site key) in etc/config.ts to run reCAPTCHA v3.
+        </p>
+      </main>
+    );
+  }
+
+  return <Recaptcha3Inner />;
+}
 
 function Recaptcha3Inner() {
   const { recaptchaScore, isSuspiciousScore } = useRecaptchaScore({
@@ -41,24 +52,5 @@ function Recaptcha3Inner() {
         )}
       </div>
     </main>
-  );
-}
-
-export default function Recaptcha3Page() {
-  if (!SITE_KEY) {
-    return (
-      <main className="flex flex-1 items-center justify-center bg-zinc-50 p-8 text-center dark:bg-black">
-        <p className="max-w-sm text-sm text-red-600 dark:text-red-400">
-          Set NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY in .env.local to run reCAPTCHA
-          v3.
-        </p>
-      </main>
-    );
-  }
-
-  return (
-    <GoogleReCaptchaProvider reCaptchaKey={SITE_KEY}>
-      <Recaptcha3Inner />
-    </GoogleReCaptchaProvider>
   );
 }

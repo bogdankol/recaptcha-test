@@ -5,9 +5,9 @@ import { useState } from "react";
 
 // reCAPTCHA Enterprise (score-based) loaded with a render key, per Google's
 // "Load the JavaScript API with your key" flow. Tokens are obtained via
-// grecaptcha.enterprise.execute on click and would normally be sent to a
-// backend for scoring. With no backend here, each button SIMULATES a score in
-// a fixed range so both the pass and fail paths are demonstrable.
+// grecaptcha.enterprise.execute on click. With no backend here, each button
+// SIMULATES a score in a fixed range so both the pass and fail paths are
+// demonstrable.
 const SITE_KEY = "6LcTCA4tAAAAAEhz9gWnuo4si5XUqwvrmhBwhm_R";
 
 declare global {
@@ -24,44 +24,47 @@ declare global {
   }
 }
 
-type Result = { score: number; token: string | null } | null;
+type Result = { score: number } | null;
+
+// Resolve a real Enterprise token via grecaptcha.enterprise.execute.
+function getEnterpriseToken(): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const g = window.grecaptcha;
+    if (!g) {
+      reject(new Error("grecaptcha not loaded"));
+      return;
+    }
+    g.enterprise.ready(() => {
+      g.enterprise.execute(SITE_KEY, { action: "LOGIN" }).then(resolve, reject);
+    });
+  });
+}
 
 export default function TestKeyAlways09Page() {
   const [result, setResult] = useState<Result>(null);
   const [loading, setLoading] = useState(false);
 
-  async function runCheck(range: "pass" | "fail") {
+  async function runCheck(range: "pass" | "fail" | "any") {
     setLoading(true);
     setResult(null);
 
-    // Best-effort: fetch a real Enterprise token. Falls through to a simulated
-    // score regardless, since there is no backend to verify the token.
-    let token: string | null = null;
+    // Best-effort: fetch a real token, but the score below is simulated since
+    // these buttons don't verify it server-side.
     try {
-      token = await new Promise<string>((resolve, reject) => {
-        const g = window.grecaptcha;
-        if (!g) {
-          reject(new Error("grecaptcha not loaded"));
-          return;
-        }
-        g.enterprise.ready(() => {
-          g.enterprise.execute(SITE_KEY, { action: "LOGIN" }).then(
-            resolve,
-            reject
-          );
-        });
-      });
+      await getEnterpriseToken();
     } catch {
-      token = null;
+      /* ignore — score is simulated regardless */
     }
 
-    // Simulated score: pass → [0.9, 1.0], fail → [0.0, 0.5).
+    // Simulated score: pass → [0.9, 1.0], fail → [0.0, 0.5), any → [0.0, 1.0].
     const score =
       range === "pass"
         ? Math.round((0.9 + Math.random() * 0.1) * 10) / 10
-        : Math.round(Math.random() * 0.5 * 10) / 10;
+        : range === "fail"
+          ? Math.round(Math.random() * 0.5 * 10) / 10
+          : Math.round(Math.random() * 10) / 10;
 
-    setResult({ score, token });
+    setResult({ score });
     setLoading(false);
   }
 
@@ -98,6 +101,14 @@ export default function TestKeyAlways09Page() {
             className="rounded-full border border-red-500 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400"
           >
             Fail check (&lt; 0.5)
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => runCheck("any")}
+            className="rounded-full border border-black/12 px-6 py-3 text-sm font-medium transition-colors hover:bg-black/4 disabled:opacity-50 dark:border-white/16 dark:hover:bg-white/6"
+          >
+            Run check (any score)
           </button>
         </div>
 

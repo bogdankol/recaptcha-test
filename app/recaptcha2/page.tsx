@@ -2,13 +2,11 @@
 
 import ReCAPTCHA from "react-google-recaptcha";
 import { useRef, useState } from "react";
+import { recaptchaKeyForV2 } from "@/etc/config";
 
-// reCAPTCHA v2 ("I'm not a robot" checkbox) via react-google-recaptcha.
-// Defaults to Google's official test site key, which always passes.
-// Override with NEXT_PUBLIC_RECAPTCHA_V2_SITE_KEY for a real key.
-const SITE_KEY =
-  process.env.NEXT_PUBLIC_RECAPTCHA_V2_SITE_KEY ??
-  "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+// reCAPTCHA v2 ("I'm not a robot" checkbox) via react-google-recaptcha,
+// using the shared v2 site key from etc/config.
+const SITE_KEY = recaptchaKeyForV2;
 
 export default function Recaptcha2Page() {
   const [open, setOpen] = useState(false);

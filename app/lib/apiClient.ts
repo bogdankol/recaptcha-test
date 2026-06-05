@@ -1,8 +1,10 @@
-// Minimal stand-in for the app's real API client.
+// Client-side stand-in for the app's real API client.
 //
-// With no backend in this demo, `post` SIMULATES the server response instead
-// of making a network call. Swap this module for the real api client in
-// production — the call sites (e.g. validRecaptchaToken) stay unchanged.
+// IMPORTANT: this is fully client-side — no server, no network. A real
+// reCAPTCHA v3 score CANNOT be obtained in the browser: it requires the secret
+// key server-side and Google's siteverify endpoint blocks cross-origin browser
+// requests. So `post` SIMULATES the backend response. Swap this for the real
+// api client (which hits your backend) in production.
 type PostArgs = {
   requestURL: string;
   payload: Record<string, unknown>;
@@ -17,9 +19,7 @@ export const apiClient = {
       if (!payload.token) {
         throw new Error("Missing reCAPTCHA token");
       }
-      // A real backend verifies the token with Google and returns its score.
-      // Here we return a random score in [0, 1] so both the "OK" and
-      // "Risky (< 0.4)" paths are reachable.
+      // Random score in [0, 1] so both the OK and suspicious paths are reachable.
       return { score: Math.round(Math.random() * 10) / 10 };
     }
 
