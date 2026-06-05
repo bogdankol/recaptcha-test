@@ -5,7 +5,7 @@ import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { checkRecaptchaToken } from "@/app/lib/recaptcha";
 
 // Scores below this are treated as suspicious/risky.
-const RISKY_THRESHOLD = 0.4;
+const RISKY_THRESHOLD = 0.9;
 
 // reCAPTCHA always returns low scores on localhost, so skip the gate there.
 const isLocalhost =

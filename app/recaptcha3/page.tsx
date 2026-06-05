@@ -17,7 +17,7 @@ function Recaptcha3Inner() {
     <main className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
       <div className="flex w-full max-w-sm flex-col items-center gap-6 rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-zinc-900">
         <h2 className="text-xl font-semibold text-black dark:text-zinc-50">
-          reCAPTCHA v3
+          reCAPTCHA v3------1
         </h2>
 
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
@@ -36,7 +36,7 @@ function Recaptcha3Inner() {
             }`}
           >
             Score: {recaptchaScore.toFixed(1)} —{" "}
-            {isSuspiciousScore ? "Risky (< 0.4)" : "OK"}
+            {isSuspiciousScore ? "Risky (< 9)" : "OK"}
           </p>
         )}
       </div>
