@@ -10,10 +10,10 @@ export const recaptchaKey = "6LdFZA4tAAAAAFH26HtSIjG7SkvFE5PebD-F9m8Z";
 // v3 secret — used by the "without projectId" verify path (classic siteverify).
 export const recaptchaSecretKey = "6LdFZA4tAAAAAGa4mB_XksStrzM1geX-3XmH0UiN";
 
-// Used by the "with projectId" verify path (Enterprise Assessment REST API).
-// recaptchaApiKey is REQUIRED for that call and is exposed client-side.
+// Used by the "with projectId" verify path (Enterprise Assessment via the
+// @google-cloud/recaptcha-enterprise library). Auth is via a service account
+// (GOOGLE_APPLICATION_CREDENTIALS), not an API key.
 export const recaptchaProjectId = "gen-lang-client-0478228684";
-export const recaptchaApiKey = "";
 
 // reCAPTCHA v2 ("I'm not a robot" checkbox) — shown as a fallback when the
 // v3 score is suspicious.

@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
-import {
-  recaptchaKey,
-  recaptchaSecretKey,
-  recaptchaProjectId,
-  recaptchaApiKey,
-} from "@/etc/config";
+import { RecaptchaEnterpriseServiceClient } from "@google-cloud/recaptcha-enterprise";
+import { recaptchaKey, recaptchaSecretKey, recaptchaProjectId } from "@/etc/config";
 
 // Backend score verification, at the same path the real app uses
 // (v3/auth/recaptcha/verify). Runs server-side, so there is no CORS and the
-// secret / API key never reach the browser. Supports two variants:
+// secret / credentials never reach the browser. Supports two variants:
 //   "siteverify"  → classic v3 siteverify (secret key, no projectId)
-//   "assessment"  → Enterprise Assessment API (projectId + API key)
+//   "assessment"  → Enterprise Assessment API via @google-cloud/recaptcha-enterprise
+//                   (needs a service account — see note below).
 export async function POST(request: Request) {
   const {
     token,
@@ -26,15 +23,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
-  const score =
-    variant === "assessment"
-      ? await createAssessment(token, action)
-      : await siteverify(token);
-
-  return NextResponse.json({ score });
+  try {
+    const score =
+      variant === "assessment"
+        ? await createAssessment(token, action)
+        : await siteverify(token);
+    return NextResponse.json({ score });
+  } catch (e) {
+    console.error(`${variant} verification error:`, e);
+    return NextResponse.json({ score: null });
+  }
 }
 
-// WITHOUT projectId — classic siteverify.
+// WITHOUT projectId — classic siteverify (secret key + token).
 async function siteverify(token: string): Promise<number | null> {
   const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
     method: "POST",
@@ -55,36 +56,29 @@ async function siteverify(token: string): Promise<number | null> {
   return data.score ?? null;
 }
 
-// WITH projectId — Enterprise Assessment REST API (translated from Google's
-// createAssessment Node sample; the Node-only gRPC client pieces are dropped).
+// WITH projectId — Enterprise Assessment via the official Node library.
+// Authenticates via Application Default Credentials: set GOOGLE_APPLICATION_CREDENTIALS
+// to a service-account JSON whose account has the reCAPTCHA Enterprise Agent role.
+// The client is cached across requests (per Google's recommendation).
+let recaptchaClient: RecaptchaEnterpriseServiceClient | null = null;
+function getClient() {
+  if (!recaptchaClient) {
+    recaptchaClient = new RecaptchaEnterpriseServiceClient();
+  }
+  return recaptchaClient;
+}
+
 async function createAssessment(
   token: string,
   recaptchaAction: string
 ): Promise<number | null> {
-  const res = await fetch(
-    `https://recaptchaenterprise.googleapis.com/v1/projects/${recaptchaProjectId}/assessments?key=${recaptchaApiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event: { token, siteKey: recaptchaKey } }),
-    }
-  );
+  const client = getClient();
+  const projectPath = client.projectPath(recaptchaProjectId);
 
-  const response = (await res.json()) as {
-    tokenProperties?: { valid?: boolean; action?: string; invalidReason?: string };
-    riskAnalysis?: { score?: number; reasons?: string[] };
-    error?: { code?: number; message?: string; status?: string };
-  };
-
-  // The API returned an error object (e.g. missing/invalid API key, project
-  // mismatch) rather than an assessment.
-  if (!res.ok || response.error) {
-    console.log(
-      `Assessment API error (${res.status}):`,
-      response.error?.message ?? response.error?.status ?? "unknown"
-    );
-    return null;
-  }
+  const [response] = await client.createAssessment({
+    assessment: { event: { token, siteKey: recaptchaKey } },
+    parent: projectPath,
+  });
 
   if (!response.tokenProperties?.valid) {
     console.log(
