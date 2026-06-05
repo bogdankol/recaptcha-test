@@ -73,7 +73,18 @@ async function createAssessment(
   const response = (await res.json()) as {
     tokenProperties?: { valid?: boolean; action?: string; invalidReason?: string };
     riskAnalysis?: { score?: number; reasons?: string[] };
+    error?: { code?: number; message?: string; status?: string };
   };
+
+  // The API returned an error object (e.g. missing/invalid API key, project
+  // mismatch) rather than an assessment.
+  if (!res.ok || response.error) {
+    console.log(
+      `Assessment API error (${res.status}):`,
+      response.error?.message ?? response.error?.status ?? "unknown"
+    );
+    return null;
+  }
 
   if (!response.tokenProperties?.valid) {
     console.log(
