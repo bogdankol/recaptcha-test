@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useState } from "react";
+import { BackToHome } from "@/app/components/BackToHome";
 
 // reCAPTCHA Enterprise (score-based) loaded with a render key, per Google's
 // "Load the JavaScript API with your key" flow. Tokens are obtained via
@@ -70,6 +71,7 @@ export default function TestKeyAlways09Page() {
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
+      <BackToHome />
       <Script
         src={`https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`}
         strategy="afterInteractive"

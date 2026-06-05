@@ -1,10 +1,12 @@
 import Script from "next/script";
+import { BackToHome } from "@/app/components/BackToHome";
 
 // reCAPTCHA Enterprise — auto-rendered "g-recaptcha" widget bound to a form
 // POST, mirroring Google's "Simple page" demo markup.
 export default function TestKey1Page() {
   return (
     <main className="flex min-h-screen flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
+      <BackToHome />
       <Script
         src="https://www.google.com/recaptcha/enterprise.js"
         strategy="afterInteractive"

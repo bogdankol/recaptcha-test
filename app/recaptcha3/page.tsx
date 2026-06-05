@@ -2,6 +2,7 @@
 
 import { useRecaptchaScore } from "@/app/hooks/useRecaptchaScore";
 import { recaptchaKey } from "@/etc/config";
+import { BackToHome } from "@/app/components/BackToHome";
 
 // reCAPTCHA v3 (invisible, score-based). The provider is now global
 // (app/providers.tsx), so this page just consumes the score hook.
@@ -9,6 +10,7 @@ export default function Recaptcha3Page() {
   if (!recaptchaKey) {
     return (
       <main className="flex flex-1 items-center justify-center bg-zinc-50 p-8 text-center dark:bg-black">
+        <BackToHome />
         <p className="max-w-sm text-sm text-red-600 dark:text-red-400">
           Set recaptchaKey (v3 site key) in etc/config.ts to run reCAPTCHA v3.
         </p>
@@ -26,6 +28,7 @@ function Recaptcha3Inner() {
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
+      <BackToHome />
       <div className="flex w-full max-w-sm flex-col items-center gap-6 rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-zinc-900">
         <h2 className="text-xl font-semibold text-black dark:text-zinc-50">
           reCAPTCHA v3------1

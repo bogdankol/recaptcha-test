@@ -3,6 +3,7 @@
 import ReCAPTCHA from "react-google-recaptcha";
 import { useRef, useState } from "react";
 import { recaptchaKeyForV2 } from "@/etc/config";
+import { BackToHome } from "@/app/components/BackToHome";
 
 // reCAPTCHA v2 ("I'm not a robot" checkbox) via react-google-recaptcha,
 // using the shared v2 site key from etc/config.
@@ -21,6 +22,7 @@ export default function Recaptcha2Page() {
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
+      <BackToHome />
       <button
         type="button"
         onClick={() => setOpen(true)}

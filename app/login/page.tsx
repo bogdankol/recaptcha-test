@@ -5,6 +5,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { recaptchaKeyForV2 } from "@/etc/config";
 import { useRecaptchaScore } from "@/app/hooks/useRecaptchaScore";
 import { useRecaptchaV2Handler } from "@/app/hooks/useRecaptchaV2Handler";
+import { BackToHome } from "@/app/components/BackToHome";
 
 // Demo of the real app's login flow: an invisible v3 score runs on load, and
 // the visible v2 checkbox only appears as a fallback when the score is
@@ -25,6 +26,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 p-4 dark:bg-black">
+      <BackToHome />
       <form
         onSubmit={handleSubmit}
         className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-white p-8 shadow-2xl dark:bg-zinc-900"
