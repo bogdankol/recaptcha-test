@@ -5,18 +5,42 @@ import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
 import { recaptchaKeyForV2Hard } from "./config";
 
-// v2-only verification using the "key-v2-real-hard" checkbox key.
-// No v3 score here — solving the checkbox is the only gate.
+// v2-only ("key-v2-real-hard"). Solve the checkbox to get a token, then click
+// "Run check" to verify it server-side (siteverify). Each click appends a
+// result. v2 has no numeric score — it returns pass/fail.
+type Check = { n: number; score: number | null; success: boolean; codes: string[] };
+
 export default function FromRepoPage() {
   const [v2Token, setV2Token] = useState<string | null>(null);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [checks, setChecks] = useState<Check[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const isVerified = Boolean(v2Token);
-
-  function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    if (!isVerified) return;
-    setLoggedIn(true);
+  async function runCheck() {
+    if (!v2Token) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/from-repo/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: v2Token }),
+      });
+      const data = (await res.json()) as {
+        success: boolean;
+        score: number | null;
+        errorCodes: string[];
+      };
+      setChecks((c) => [
+        ...c,
+        { n: c.length + 1, score: data.score, success: data.success, codes: data.errorCodes },
+      ]);
+    } catch {
+      setChecks((c) => [
+        ...c,
+        { n: c.length + 1, score: null, success: false, codes: ["request-failed"] },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -28,47 +52,49 @@ export default function FromRepoPage() {
         ← Main page
       </Link>
 
-      <form
-        onSubmit={handleLogin}
-        className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-white p-8 shadow-2xl dark:bg-zinc-900"
-      >
+      <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl bg-white p-8 shadow-2xl dark:bg-zinc-900">
         <h2 className="text-center text-xl font-semibold text-black dark:text-zinc-50">
-          Log in (v2 only)
+          reCAPTCHA v2 (key-v2-real-hard)
         </h2>
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="rounded-lg border border-black/12 px-4 py-2 text-sm outline-none dark:border-white/16 dark:bg-zinc-800"
+        <ReCAPTCHA
+          sitekey={recaptchaKeyForV2Hard}
+          onChange={(token) => setV2Token(token)}
+          onExpired={() => setV2Token(null)}
         />
-        <input
-          type="password"
-          placeholder="Password"
-          className="rounded-lg border border-black/12 px-4 py-2 text-sm outline-none dark:border-white/16 dark:bg-zinc-800"
-        />
-
-        <div className="flex justify-center">
-          <ReCAPTCHA
-            sitekey={recaptchaKeyForV2Hard}
-            onChange={(token) => setV2Token(token)}
-            onExpired={() => setV2Token(null)}
-          />
-        </div>
 
         <button
-          type="submit"
-          disabled={!isVerified}
+          type="button"
+          onClick={runCheck}
+          disabled={!v2Token || loading}
           className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
         >
-          Log in
+          {loading ? "Checking…" : "Run check"}
         </button>
 
-        {loggedIn && (
-          <p className="text-center text-sm font-medium text-green-600 dark:text-green-400">
-            Logged in — checkbox verified.
-          </p>
+        <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
+          v2 tokens are single-use — re-solve the checkbox for a fresh token.
+        </p>
+
+        {checks.length > 0 && (
+          <ul className="flex w-full flex-col gap-1 text-sm">
+            {checks.map((c) => (
+              <li
+                key={c.n}
+                className={`font-medium ${
+                  c.success
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-red-600 dark:text-red-400"
+                }`}
+              >
+                #{c.n} — score:{" "}
+                {c.score === null ? "n/a (v2)" : c.score.toFixed(1)} —{" "}
+                {c.success ? "pass" : `fail${c.codes.length ? ` (${c.codes.join(", ")})` : ""}`}
+              </li>
+            ))}
+          </ul>
         )}
-      </form>
+      </div>
     </main>
   );
 }
