@@ -35,36 +35,41 @@ export default function Home() {
             center.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+        <div className="flex w-full max-w-sm flex-col gap-3 text-base font-medium">
           <Link
-            className="flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            className="flex flex-col rounded-2xl bg-foreground px-5 py-3 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
             href="/recaptcha2"
           >
-            reCAPTCHA v2
+            <span>reCAPTCHA v2</span>
+            <span className="text-xs opacity-70">/recaptcha2</span>
           </Link>
           <Link
-            className="flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            className="flex flex-col rounded-2xl bg-foreground px-5 py-3 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
             href="/recaptcha3"
           >
-            reCAPTCHA v3
+            <span>reCAPTCHA v3</span>
+            <span className="text-xs opacity-70">/recaptcha3</span>
           </Link>
           <Link
-            className="flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            className="flex flex-col rounded-2xl bg-foreground px-5 py-3 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
             href="/testKey1"
           >
-            Enterprise
+            <span>Enterprise</span>
+            <span className="text-xs opacity-70">/testKey1</span>
           </Link>
           <Link
-            className="flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            className="flex flex-col rounded-2xl bg-foreground px-5 py-3 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
             href="/testkey-always-0.9"
           >
-            Enterprise score
+            <span>Enterprise score</span>
+            <span className="text-xs opacity-70">/testkey-always-0.9</span>
           </Link>
           <Link
-            className="flex h-12 w-full items-center justify-center rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            className="flex flex-col rounded-2xl bg-foreground px-5 py-3 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
             href="/login"
           >
-            Login (v3 + v2 fallback)
+            <span>Login (v3 + v2 fallback)</span>
+            <span className="text-xs opacity-70">/login</span>
           </Link>
         </div>
         <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
