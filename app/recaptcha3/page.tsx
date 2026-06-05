@@ -1,102 +1,45 @@
 "use client";
 
-import {
-  GoogleReCaptchaProvider,
-  useGoogleReCaptcha,
-} from "react-google-recaptcha-v3";
-import { useState } from "react";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+import { useRecaptchaScore } from "@/app/hooks/useRecaptchaScore";
 
 // reCAPTCHA v3 (invisible, score-based — no checkbox) via
 // react-google-recaptcha-v3. v3 has no public "always pass" test key,
 // so a real key is required. Set NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY.
 const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY ?? "";
 
-type Status = "idle" | "loading" | "done" | "error";
-
 function Recaptcha3Inner() {
-  const { executeRecaptcha } = useGoogleReCaptcha();
-  const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<Status>("idle");
-  const [token, setToken] = useState<string | null>(null);
-
-  async function openOverlay() {
-    setOpen(true);
-    setToken(null);
-    setStatus("loading");
-
-    if (!executeRecaptcha) {
-      setStatus("error");
-      return;
-    }
-    try {
-      const t = await executeRecaptcha("open_recaptcha");
-      setToken(t);
-      setStatus("done");
-    } catch {
-      setStatus("error");
-    }
-  }
-
-  function close() {
-    setOpen(false);
-    setStatus("idle");
-    setToken(null);
-  }
+  const { recaptchaScore, isSuspiciousScore } = useRecaptchaScore({
+    action: "open_recaptcha",
+  });
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-black">
-      <button
-        type="button"
-        onClick={openOverlay}
-        className="rounded-full bg-foreground px-8 py-4 text-lg font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
-      >
-        Open reCAPTCHA
-      </button>
+      <div className="flex w-full max-w-sm flex-col items-center gap-6 rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-zinc-900">
+        <h2 className="text-xl font-semibold text-black dark:text-zinc-50">
+          reCAPTCHA v3
+        </h2>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-          onClick={close}
-        >
-          <div
-            className="flex w-full max-w-sm flex-col items-center gap-6 rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-zinc-900"
-            onClick={(e) => e.stopPropagation()}
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          v3 is invisible and runs in the background, returning a risk score (no
+          checkbox to solve). The score is checked on load.
+        </p>
+
+        {recaptchaScore === null ? (
+          <p className="text-sm text-zinc-500">Running verification…</p>
+        ) : (
+          <p
+            className={`text-sm font-medium ${
+              isSuspiciousScore
+                ? "text-red-600 dark:text-red-400"
+                : "text-green-600 dark:text-green-400"
+            }`}
           >
-            <h2 className="text-xl font-semibold text-black dark:text-zinc-50">
-              reCAPTCHA v3
-            </h2>
-
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              v3 is invisible and runs in the background, returning a token and
-              a risk score (no checkbox to solve).
-            </p>
-
-            {status === "loading" && (
-              <p className="text-sm text-zinc-500">Running verification…</p>
-            )}
-
-            {status === "done" && token && (
-              <p className="max-w-xs break-all text-sm text-green-600 dark:text-green-400">
-                Token received: {token.slice(0, 24)}…
-              </p>
-            )}
-
-            {status === "error" && (
-              <p className="max-w-xs text-sm text-red-600 dark:text-red-400">
-                Verification failed. Check the site key and domain.
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={close}
-              className="rounded-full border border-black/[.12] px-6 py-2 text-sm font-medium transition-colors hover:bg-black/[.04] dark:border-white/[.16] dark:hover:bg-white/[.06]"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+            Score: {recaptchaScore.toFixed(1)} —{" "}
+            {isSuspiciousScore ? "Risky (< 0.4)" : "OK"}
+          </p>
+        )}
+      </div>
     </main>
   );
 }
