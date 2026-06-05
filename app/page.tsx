@@ -75,7 +75,7 @@ export default function Home() {
             className="flex flex-col rounded-2xl bg-foreground px-5 py-3 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
             href="/from-repo"
           >
-            <span>From repo (LoginFragment port)</span>
+            <span>From repo (v2 only)</span>
             <span className="text-xs opacity-70">/from-repo</span>
           </Link>
         </div>
