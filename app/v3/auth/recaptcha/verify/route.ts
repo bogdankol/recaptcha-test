@@ -57,13 +57,25 @@ async function siteverify(token: string): Promise<number | null> {
 }
 
 // WITH projectId — Enterprise Assessment via the official Node library.
-// Authenticates via Application Default Credentials: set GOOGLE_APPLICATION_CREDENTIALS
-// to a service-account JSON whose account has the reCAPTCHA Enterprise Agent role.
+// Authenticates via a service account with the reCAPTCHA Enterprise Agent role:
+//   • local:      GOOGLE_APPLICATION_CREDENTIALS = path to the service-account JSON
+//   • serverless: GOOGLE_CREDENTIALS_JSON = the service-account JSON inline
+// If neither is set we DON'T construct the client — the gRPC auth failure
+// throws an unhandled rejection that would crash the (serverless) process.
 // The client is cached across requests (per Google's recommendation).
 let recaptchaClient: RecaptchaEnterpriseServiceClient | null = null;
-function getClient() {
-  if (!recaptchaClient) {
+function getClient(): RecaptchaEnterpriseServiceClient | null {
+  if (recaptchaClient) return recaptchaClient;
+
+  if (process.env.GOOGLE_CREDENTIALS_JSON) {
+    recaptchaClient = new RecaptchaEnterpriseServiceClient({
+      projectId: recaptchaProjectId,
+      credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON),
+    });
+  } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     recaptchaClient = new RecaptchaEnterpriseServiceClient();
+  } else {
+    return null;
   }
   return recaptchaClient;
 }
@@ -73,6 +85,12 @@ async function createAssessment(
   recaptchaAction: string
 ): Promise<number | null> {
   const client = getClient();
+  if (!client) {
+    console.log(
+      "Assessment skipped: no service-account credentials. Set GOOGLE_APPLICATION_CREDENTIALS (local) or GOOGLE_CREDENTIALS_JSON (serverless)."
+    );
+    return null;
+  }
   const projectPath = client.projectPath(recaptchaProjectId);
 
   const [response] = await client.createAssessment({
