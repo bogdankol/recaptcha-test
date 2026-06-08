@@ -15,6 +15,8 @@ export default function FromRepoPage() {
   const [checks, setChecks] = useState<Check[]>([]);
   const [loading, setLoading] = useState(false);
 
+  console.log({checks})
+
   async function runCheck() {
     if (!v2Token) return;
     setLoading(true);
@@ -76,7 +78,7 @@ export default function FromRepoPage() {
           v2 tokens are single-use — re-solve the checkbox for a fresh token.
         </p>
 
-        {checks.length > 0 && (
+        {/* {checks.length > 0 && (
           <ul className="flex w-full flex-col gap-1 text-sm">
             {checks.map((c) => (
               <li
@@ -93,7 +95,7 @@ export default function FromRepoPage() {
               </li>
             ))}
           </ul>
-        )}
+        )} */}
       </div>
     </main>
   );
