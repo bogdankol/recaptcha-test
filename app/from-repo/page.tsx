@@ -17,33 +17,33 @@ export default function FromRepoPage() {
 
   console.log({checks})
 
-  async function runCheck() {
-    if (!v2Token) return;
-    setLoading(true);
-    try {
-      const res = await fetch("/from-repo/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: v2Token }),
-      });
-      const data = (await res.json()) as {
-        success: boolean;
-        score: number | null;
-        errorCodes: string[];
-      };
-      setChecks((c) => [
-        ...c,
-        { n: c.length + 1, score: data.score, success: data.success, codes: data.errorCodes },
-      ]);
-    } catch {
-      setChecks((c) => [
-        ...c,
-        { n: c.length + 1, score: null, success: false, codes: ["request-failed"] },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // async function runCheck() {
+  //   if (!v2Token) return;
+  //   setLoading(true);
+  //   try {
+  //     const res = await fetch("/from-repo/verify", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ token: v2Token }),
+  //     });
+  //     const data = (await res.json()) as {
+  //       success: boolean;
+  //       score: number | null;
+  //       errorCodes: string[];
+  //     };
+  //     setChecks((c) => [
+  //       ...c,
+  //       { n: c.length + 1, score: data.score, success: data.success, codes: data.errorCodes },
+  //     ]);
+  //   } catch {
+  //     setChecks((c) => [
+  //       ...c,
+  //       { n: c.length + 1, score: null, success: false, codes: ["request-failed"] },
+  //     ]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 p-4 dark:bg-black">
@@ -65,14 +65,14 @@ export default function FromRepoPage() {
           onExpired={() => setV2Token(null)}
         />
 
-        <button
+        {/* <button
           type="button"
           onClick={runCheck}
           disabled={!v2Token || loading}
           className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
         >
           {loading ? "Checking…" : "Run check"}
-        </button>
+        </button> */}
 
         <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
           v2 tokens are single-use — re-solve the checkbox for a fresh token.
