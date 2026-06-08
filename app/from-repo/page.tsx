@@ -5,63 +5,11 @@ import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
 import { recaptchaKeyForV2Hard } from "./config";
 
-// v2-only ("key-v2-real-hard"). Solve the checkbox to get a token, then click
-// "Run check" to verify it server-side (siteverify). Each click appends a
-// result. v2 has no numeric score — it returns pass/fail.
-type Check = { n: number; score: number | null; success: boolean; codes: string[] };
-
+// v2-only ("key-v2-real-hard"), client-side only. Solving the checkbox mints a
+// token in the browser; there is no server-side verification here. (A real
+// app must verify the token server-side with the secret — see the other demos.)
 export default function FromRepoPage() {
   const [v2Token, setV2Token] = useState<string | null>(null);
-  const [checks, setChecks] = useState<Check[]>([]);
-  const [loading, setLoading] = useState(false);
-  // "idle" before any check, "checking" while the backend call is in flight,
-  // then "verified" / "failed" once it resolves.
-  const [status, setStatus] = useState<"idle" | "checking" | "verified" | "failed">("idle");
-
-  console.log({checks})
-
-  async function verifyTokenBackend(token: string) {
-    setStatus("checking");
-    try {
-      const res = await fetch("/from-repo/verification_token_backend", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
-      const data = (await res.json()) as { verified: boolean };
-      setStatus(data.verified ? "verified" : "failed");
-    } catch {
-      setStatus("failed");
-    }
-  }
-
-  // async function runCheck() {
-  //   if (!v2Token) return;
-  //   setLoading(true);
-  //   try {
-  //     const res = await fetch("/from-repo/verify", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ token: v2Token }),
-  //     });
-  //     const data = (await res.json()) as {
-  //       success: boolean;
-  //       score: number | null;
-  //       errorCodes: string[];
-  //     };
-  //     setChecks((c) => [
-  //       ...c,
-  //       { n: c.length + 1, score: data.score, success: data.success, codes: data.errorCodes },
-  //     ]);
-  //   } catch {
-  //     setChecks((c) => [
-  //       ...c,
-  //       { n: c.length + 1, score: null, success: false, codes: ["request-failed"] },
-  //     ]);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 p-4 dark:bg-black">
@@ -79,65 +27,19 @@ export default function FromRepoPage() {
 
         <ReCAPTCHA
           sitekey={recaptchaKeyForV2Hard}
-          onChange={async (token) => {
-            setV2Token(token);
-            if (token) await verifyTokenBackend(token);
-          }}
-          onExpired={() => {
-            setV2Token(null);
-            setStatus("idle");
-          }}
+          onChange={(token) => setV2Token(token)}
+          onExpired={() => setV2Token(null)}
         />
 
-        {status !== "idle" && (
-          <h4
-            className={`text-center text-base font-semibold ${
-              status === "checking"
-                ? "text-zinc-500 dark:text-zinc-400"
-                : status === "verified"
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
-            }`}
-          >
-            {status === "checking"
-              ? "Backend verification: checking…"
-              : `Backend verification ended: ${
-                  status === "verified" ? "verified" : "not verified"
-                }`}
-          </h4>
+        {v2Token && (
+          <p className="text-center text-sm font-medium text-green-600 dark:text-green-400">
+            Token received (client-side only — not verified)
+          </p>
         )}
-
-        {/* <button
-          type="button"
-          onClick={runCheck}
-          disabled={!v2Token || loading}
-          className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-[#383838] disabled:opacity-50 dark:hover:bg-[#ccc]"
-        >
-          {loading ? "Checking…" : "Run check"}
-        </button> */}
 
         <p className="text-center text-xs text-zinc-400 dark:text-zinc-500">
           v2 tokens are single-use — re-solve the checkbox for a fresh token.
         </p>
-
-        {/* {checks.length > 0 && (
-          <ul className="flex w-full flex-col gap-1 text-sm">
-            {checks.map((c) => (
-              <li
-                key={c.n}
-                className={`font-medium ${
-                  c.success
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-red-600 dark:text-red-400"
-                }`}
-              >
-                #{c.n} — score:{" "}
-                {c.score === null ? "n/a (v2)" : c.score.toFixed(1)} —{" "}
-                {c.success ? "pass" : `fail${c.codes.length ? ` (${c.codes.join(", ")})` : ""}`}
-              </li>
-            ))}
-          </ul>
-        )} */}
       </div>
     </main>
   );
