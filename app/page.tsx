@@ -78,6 +78,13 @@ export default function Home() {
             <span>From repo (v2 only)</span>
             <span className="text-xs opacity-70">/from-repo</span>
           </Link>
+          <Link
+            className="flex flex-col rounded-2xl bg-foreground px-5 py-3 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
+            href="/from-repo-with-backend"
+          >
+            <span>From repo (v2 + backend)</span>
+            <span className="text-xs opacity-70">/from-repo-with-backend</span>
+          </Link>
         </div>
         <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
           <a
