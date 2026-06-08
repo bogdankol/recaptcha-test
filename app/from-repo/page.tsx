@@ -14,8 +14,26 @@ export default function FromRepoPage() {
   const [v2Token, setV2Token] = useState<string | null>(null);
   const [checks, setChecks] = useState<Check[]>([]);
   const [loading, setLoading] = useState(false);
+  // "idle" before any check, "checking" while the backend call is in flight,
+  // then "verified" / "failed" once it resolves.
+  const [status, setStatus] = useState<"idle" | "checking" | "verified" | "failed">("idle");
 
   console.log({checks})
+
+  async function verifyTokenBackend(token: string) {
+    setStatus("checking");
+    try {
+      const res = await fetch("/from-repo/verification_token_backend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      const data = (await res.json()) as { verified: boolean };
+      setStatus(data.verified ? "verified" : "failed");
+    } catch {
+      setStatus("failed");
+    }
+  }
 
   // async function runCheck() {
   //   if (!v2Token) return;
@@ -61,9 +79,33 @@ export default function FromRepoPage() {
 
         <ReCAPTCHA
           sitekey={recaptchaKeyForV2Hard}
-          onChange={(token) => setV2Token(token)}
-          onExpired={() => setV2Token(null)}
+          onChange={async (token) => {
+            setV2Token(token);
+            if (token) await verifyTokenBackend(token);
+          }}
+          onExpired={() => {
+            setV2Token(null);
+            setStatus("idle");
+          }}
         />
+
+        {status !== "idle" && (
+          <h4
+            className={`text-center text-base font-semibold ${
+              status === "checking"
+                ? "text-zinc-500 dark:text-zinc-400"
+                : status === "verified"
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {status === "checking"
+              ? "Backend verification: checking…"
+              : `Backend verification ended: ${
+                  status === "verified" ? "verified" : "not verified"
+                }`}
+          </h4>
+        )}
 
         {/* <button
           type="button"
